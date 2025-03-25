@@ -44,7 +44,7 @@ class LoginView(APIView):
 class ProductListCreateView(generics.ListCreateAPIView):
     serializer_class = ProductSerializer
     permission_classes = [AllowAny]
-    parser_classes = [MultiPartParser, FormParser, JSONParser]  # Explicitly define parsers
+    parser_classes = [MultiPartParser, FormParser, JSONParser]
 
     def get_queryset(self):
         try:
@@ -59,3 +59,33 @@ class ProductListCreateView(generics.ListCreateAPIView):
         except Exception as e:
             print(f"Error in get_queryset: {str(e)}")
             return Product.objects.none()
+
+class ProductUpdateView(generics.UpdateAPIView):
+    serializer_class = ProductSerializer
+    permission_classes = [AllowAny]  # You can change to IsAuthenticated if you add authentication
+    parser_classes = [MultiPartParser, FormParser, JSONParser]
+
+    def get_queryset(self):
+        try:
+            branch_name = self.request.query_params.get('branch')
+            if branch_name:
+                branch = Branch.objects.get(name__iexact=branch_name)
+                return Product.objects.filter(branch=branch)
+            return Product.objects.all()
+        except Branch.DoesNotExist:
+            print(f"Branch not found: {branch_name}")
+            return Product.objects.none()
+        except Exception as e:
+            print(f"Error in get_queryset: {str(e)}")
+            return Product.objects.none()
+
+    def update(self, request, *args, **kwargs):
+        try:
+            instance = self.get_object()
+            serializer = self.get_serializer(instance, data=request.data, partial=True)  # Allow partial updates
+            serializer.is_valid(raise_exception=True)
+            self.perform_update(serializer)
+            return Response(serializer.data)
+        except Exception as e:
+            print(f"Error updating product: {str(e)}")
+            return Response({'error': 'Failed to update product'}, status=status.HTTP_400_BAD_REQUEST)

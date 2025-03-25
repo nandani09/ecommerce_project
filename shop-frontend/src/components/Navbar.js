@@ -19,9 +19,7 @@ function Navbar({ cartCount }) {
         <Link to="/login" style={{ color: "white", margin: "0 10px" }}>
           Login
         </Link>
-        <Link to="/register" style={{ color: "white", margin: "0 10px" }}>
-          Register
-        </Link>
+        
         <Link to="/cart" style={{ color: "white", margin: "0 10px", position: "relative" }}>
           🛒 Cart{" "}
           {cartCount > 0 && (

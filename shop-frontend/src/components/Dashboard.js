@@ -3,7 +3,7 @@ import { useParams } from 'react-router-dom';
 import axios from 'axios';
 import './Dashboard.css';
 import 'bootstrap/dist/css/bootstrap.min.css';
-import { Carousel } from 'react-bootstrap'; // Import Bootstrap Carousel
+import { Carousel } from 'react-bootstrap';
 
 function Dashboard() {
   const params = useParams();
@@ -17,6 +17,8 @@ function Dashboard() {
     image: null,
     description: '',
   });
+  const [editProduct, setEditProduct] = useState(null); // State to track the product being edited
+  const [editFormData, setEditFormData] = useState({ stock: '' }); // State for edit form
   const [message, setMessage] = useState('');
 
   useEffect(() => {
@@ -87,21 +89,50 @@ function Dashboard() {
     }
   };
 
+  // Handle edit button click
+  const handleEditClick = (product) => {
+    setEditProduct(product);
+    setEditFormData({ stock: product.stock });
+  };
+
+  // Handle edit form change
+  const handleEditChange = (e) => {
+    const { name, value } = e.target;
+    setEditFormData({ ...editFormData, [name]: value });
+  };
+
+  // Handle edit form submission
+  const handleEditSubmit = async (e) => {
+    e.preventDefault();
+    try {
+      const response = await axios.patch(
+        `http://localhost:8000/api/products/${editProduct.id}/`,
+        { stock: editFormData.stock },
+        {
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        }
+      );
+      console.log('Product updated:', response.data);
+      setMessage('Product updated successfully!');
+      setEditProduct(null); // Close the edit form
+      const updatedProducts = await axios.get('http://localhost:8000/api/products/', {
+        params: { branch: branchName },
+      });
+      setProducts(updatedProducts.data);
+    } catch (error) {
+      console.error('Error updating product:', error.response?.data || error.message);
+      setMessage('Error updating product: ' + JSON.stringify(error.response?.data || error.message));
+    }
+  };
+
   return (
     <div className="dashboard-container">
       <header className="auth-header">
-        <div className="logo-container">
-          <img src="/logo.png" alt="MyEcommerce Logo" className="logo" onError={(e) => (e.target.style.display = 'none')} />
-          <h1>MyEcommerce</h1>
-        </div>
-        <div className="nav-links">
-          <a href="/login">Login</a>
-          <a href="/register">Register</a>
-          <a href="/cart">Cart</a>
-        </div>
+        
       </header>
 
-      {/* Static Image Carousel */}
       <Carousel className="product-carousel">
         <Carousel.Item>
           <img className="d-block w-100" src="/images/banner1.jpg" alt="First slide" />
@@ -132,9 +163,41 @@ function Dashboard() {
               <p>Stock: {product.stock}</p>
               <p>Branch: {product.branch}</p>
               <p>Description: {product.description || 'No description available'}</p>
+              <button onClick={() => handleEditClick(product)} className="edit-button">
+                Edit Stock
+              </button>
             </div>
           ))}
         </div>
+
+        {/* Edit Product Form */}
+        {editProduct && (
+          <div className="edit-product-form">
+            <h2 className="form-title">Edit Product: {editProduct.name}</h2>
+            <form onSubmit={handleEditSubmit} className="product-form">
+              <div className="form-group">
+                <label htmlFor="stock">Stock</label>
+                <input
+                  type="number"
+                  id="stock"
+                  name="stock"
+                  value={editFormData.stock}
+                  onChange={handleEditChange}
+                  required
+                  placeholder="Enter stock quantity"
+                />
+              </div>
+              <button type="submit" className="auth-button">Update Stock</button>
+              <button
+                type="button"
+                onClick={() => setEditProduct(null)}
+                className="cancel-button"
+              >
+                Cancel
+              </button>
+            </form>
+          </div>
+        )}
 
         {/* Add Product Form */}
         <h2 className="form-title">Add Product</h2>

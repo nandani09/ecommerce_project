@@ -37,15 +37,7 @@ function Login() {
   return (
     <div className="auth-container">
       <header className="auth-header">
-        <div className="logo-container">
-          <img src="/logo.png" alt="MyEcommerce Logo" className="logo" onError={(e) => (e.target.style.display = 'none')} />
-          <h1>MyEcommerce</h1>
-        </div>
-        <div className="nav-links">
-          <a href="/login">Login</a>
-          <a href="/register">Register</a>
-          <a href="/cart">Cart</a>
-        </div>
+        
       </header>
 
       <div className="auth-form-container">
@@ -90,9 +82,7 @@ function Login() {
           </div>
           <button type="submit" className="auth-button">Login</button>
         </form>
-        <p className="auth-link">
-          Don't have an account? <a href="/register">Register</a>
-        </p>
+          
         {message && <p className={message.includes('Error') ? 'error-message' : 'success-message'}>{message}</p>}
       </div>
     </div>
